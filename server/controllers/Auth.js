@@ -224,12 +224,55 @@ exports.login = async (req, res) => {
   }
 };
 
-//change password
 exports.changePassword = async (req, res) => {
-  //get data form req body
-  //get oldpassword and validate
-  //get new password & confirm password, validate them
-  //update password in DB
-  //send email for password update
-  //return response
+  try {
+    //get data from body
+    const { newPassword, confirmPassword } = req.body;
+    //validate data
+    if (!newPassword || !confirmPassword) {
+      return res.json({
+        success: false,
+        message: "Fill both fields",
+      });
+    }
+    if (newPassword != confirmPassword) {
+      return res.status(401).json({
+        success: false,
+        message: "Passwords does not match!!",
+      });
+    }
+
+    const token = req.cookies.token;
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decodedToken) {
+      return res.status(403).json({
+        success: false,
+        message: "Invalid token",
+      });
+    }
+    const email = decodedToken.email;
+    //update password in db
+    const user = await User.findOne({ email });
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Update password in the database
+    user.password = hashedPassword;
+    //send mail - password updated
+    await mailSender(
+      email,
+      "Password Updation mail",
+      "Password Successfully updated"
+    );
+    //return response
+    return res.status(201).json({
+      success: true,
+      message: "Password updation successfull!",
+    });
+  } catch (error) {
+    console.log("Error updating password", error);
+    return res.status(403).json({
+      success: false,
+      message: "Error updating password!!",
+    });
+  }
 };
