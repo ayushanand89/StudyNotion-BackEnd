@@ -1,5 +1,5 @@
 const Course = require("../models/Course");
-const Tag = require("../models/Tags");
+const Category = require("../models/Category");
 const User = require("../models/User");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
 require("dotenv").config();
@@ -8,7 +8,7 @@ require("dotenv").config();
 exports.createCourse = async (req, res) => {
   try {
     //fetch data
-    const { courseName, courseDescription, whatYouWillLearn, price, tag } =
+    const { courseName, courseDescription, whatYouWillLearn, price, category } =
       req.body;
 
     //get thumbnail
@@ -20,7 +20,7 @@ exports.createCourse = async (req, res) => {
       !courseDescription ||
       !whatYouWillLearn ||
       !price ||
-      !tag ||
+      !category ||
       !thumbnail
     ) {
       return res.status(400).json({
@@ -42,8 +42,8 @@ exports.createCourse = async (req, res) => {
     }
 
     //chech given tag is valid or not
-    const tagDetails = await Tag.findById(tag);
-    if (!tagDetails) {
+    const categoryDetails = await Category.findById(category);
+    if (!categoryDetails) {
       return res.status(404).json({
         success: false,
         message: "Tag not found",
@@ -63,7 +63,7 @@ exports.createCourse = async (req, res) => {
       whatYouWillLearn: whatYouWillLearn,
       price,
       thumbnail: thumbnailImage,
-      tag: tagDetails._id,
+      category : categoryDetails._id,
       instructor: instructorDetails._id,
     });
 
@@ -81,9 +81,9 @@ exports.createCourse = async (req, res) => {
     );
 
     //update the TAG schema
-    const newTag = await Tag.create({
-      name: tagDetails.name,
-      description: tagDetails.description,
+    const newCategory = await Category.create({
+      name: categoryDetails.name,
+      description: categoryDetails.description,
       course: newCourse._id,
     });
 
